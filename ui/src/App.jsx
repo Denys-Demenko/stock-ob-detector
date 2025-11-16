@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CandlestickSeries, createChart } from 'lightweight-charts';
+
+import HighlightRectangle from './HighlightRectangle';
 
 const CANDLE_COUNT = 120;
 
@@ -25,7 +27,10 @@ export default function App() {
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
   const rectangleRef = useRef(null);
+  const [chartApi, setChartApi] = useState(null);
+  const [seriesApi, setSeriesApi] = useState(null);
   const data = useMemo(() => generateRandomCandles(), []);
+  const highlightIndex = useMemo(() => Math.floor(data.length / 2), [data]);
 
   useEffect(() => {
     if (!chartContainerRef.current) {
@@ -53,6 +58,7 @@ export default function App() {
     });
 
     chartRef.current = chart;
+    setChartApi(chart);
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#26a69a',
@@ -63,6 +69,7 @@ export default function App() {
     });
 
     candleSeries.setData(data);
+    setSeriesApi(candleSeries);
 
     const middleIndex = Math.floor(data.length / 2);
     const middleCandle = data[middleIndex];
@@ -131,7 +138,21 @@ export default function App() {
         <h1>Случайные свечи для тикера</h1>
         <p>Тестовый график на базе TradingView Lightweight Charts</p>
       </header>
-      <div className="chart-wrapper" ref={chartContainerRef} />
+      <div className="chart-wrapper" ref={chartContainerRef}>
+        {chartApi && seriesApi && chartContainerRef.current ? (
+          <HighlightRectangle
+            chart={chartApi}
+            series={seriesApi}
+            container={chartContainerRef.current}
+            data={data}
+            targetIndex={highlightIndex}
+            extendLeft={false}
+            extendRight
+            fillColor="rgba(59, 130, 246, 0.25)"
+            borderColor="rgba(59, 130, 246, 0.8)"
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
