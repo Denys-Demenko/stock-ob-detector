@@ -7,6 +7,7 @@ from typing import Sequence
 
 from .data_loader import CandleData, load_candles
 from .detector import OrderBlockDetector
+from .models import Bias
 from .plotter import ChartPlotter
 
 
@@ -52,13 +53,10 @@ def run(argv: Sequence[str] | None = None) -> None:
     detector.detect()
 
     summary = detector.summarize()
-    print("Detected bullish swing order blocks:")
-    for timestamp, low, high in summary["swing"]:
-        print(f"  {timestamp:%Y-%m-%d} | low={low:.2f} high={high:.2f}")
-
-    print("Detected bullish internal order blocks:")
-    for timestamp, low, high in summary["internal"]:
-        print(f"  {timestamp:%Y-%m-%d} | low={low:.2f} high={high:.2f}")
+    _print_summary("swing", "bullish", summary, Bias.BULLISH)
+    _print_summary("swing", "bearish", summary, Bias.BEARISH)
+    _print_summary("internal", "bullish", summary, Bias.BULLISH)
+    _print_summary("internal", "bearish", summary, Bias.BEARISH)
 
     if args.no_plot:
         return
@@ -69,13 +67,46 @@ def run(argv: Sequence[str] | None = None) -> None:
         resampled.candles,
         detector.swing_order_blocks,
         label="Bull OB",
+        bias=Bias.BULLISH,
+        color="#1848cc",
+    )
+    plotter.annotate_order_blocks(
+        resampled.candles,
+        detector.swing_order_blocks,
+        label="Bear OB",
+        bias=Bias.BEARISH,
+        color="#b22833",
     )
     plotter.annotate_order_blocks(
         resampled.candles,
         detector.internal_order_blocks,
         label="Internal Bull OB",
+        bias=Bias.BULLISH,
+        color="#3179f5",
+    )
+    plotter.annotate_order_blocks(
+        resampled.candles,
+        detector.internal_order_blocks,
+        label="Internal Bear OB",
+        bias=Bias.BEARISH,
+        color="#f77c80",
     )
     plotter.show()
+
+
+def _print_summary(
+    category: str,
+    description: str,
+    summary: dict[str, list[tuple]],
+    bias: Bias,
+) -> None:
+    print(f"Detected {description} {category} order blocks:")
+    entries = [entry for entry in summary[category] if entry[3] == bias]
+    if not entries:
+        print("  (none)")
+        return
+    for timestamp, low, high, _ in entries:
+        print(f"  {timestamp:%Y-%m-%d} | low={low:.2f} high={high:.2f}")
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution

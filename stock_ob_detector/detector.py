@@ -20,7 +20,7 @@ class _StructureState:
 
 
 class OrderBlockDetector:
-    """Detects swing and internal bullish order blocks."""
+    """Detects swing and internal bullish and bearish order blocks."""
 
     def __init__(
         self,
@@ -115,6 +115,7 @@ class OrderBlockDetector:
     def _check_breakout(self, index: int, internal: bool, state: _StructureState) -> None:
         candle = self._candles[index]
         self._check_bullish_breakout(index, internal, state, candle)
+        self._check_bearish_breakout(index, internal, state, candle)
 
     def _check_bullish_breakout(
         self,
@@ -142,6 +143,33 @@ class OrderBlockDetector:
         pivot.crossed = True
         state.trend.bias = Bias.BULLISH.value
         self._store_order_block(index, internal, Bias.BULLISH, state)
+
+    def _check_bearish_breakout(
+        self,
+        index: int,
+        internal: bool,
+        state: _StructureState,
+        candle: Candle,
+    ) -> None:
+        pivot = state.pivot_low
+        if pivot.current_level is None or pivot.bar_index is None:
+            return
+
+        if index == 0:
+            return
+
+        previous_close = self._candles[index - 1].close
+        crossed = (
+            previous_close >= pivot.current_level
+            and candle.close < pivot.current_level
+            and not pivot.crossed
+        )
+        if not crossed:
+            return
+
+        pivot.crossed = True
+        state.trend.bias = Bias.BEARISH.value
+        self._store_order_block(index, internal, Bias.BEARISH, state)
 
     def _store_order_block(
         self,
@@ -180,15 +208,15 @@ class OrderBlockDetector:
         )
         container.append(order_block)
 
-    def summarize(self) -> Dict[str, List[Tuple[datetime, float, float]]]:
+    def summarize(self) -> Dict[str, List[Tuple[datetime, float, float, Bias]]]:
         return {
             "swing": [
-                (ob.timestamp, ob.low, ob.high)
+                (ob.timestamp, ob.low, ob.high, ob.bias)
                 for ob in self._swing_order_blocks
                 if ob.bias == Bias.BULLISH
             ],
             "internal": [
-                (ob.timestamp, ob.low, ob.high)
+                (ob.timestamp, ob.low, ob.high, ob.bias)
                 for ob in self._internal_order_blocks
                 if ob.bias == Bias.BULLISH
             ],

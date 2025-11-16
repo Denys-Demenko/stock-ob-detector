@@ -39,3 +39,23 @@ def test_monthly_order_blocks_cover_expected_dates(gld_monthly_candles):
     }
 
     assert expected_dates.issubset(swing_dates | internal_dates)
+
+
+def test_monthly_internal_bearish_order_blocks(gld_monthly_candles):
+    detector = OrderBlockDetector(gld_monthly_candles)
+    detector.detect()
+
+    internal_dates = {
+        ob.timestamp.date()
+        for ob in detector.internal_order_blocks
+        if ob.bias == Bias.BEARISH
+    }
+
+    expected_bearish = {
+        date(2012, 10, 31),
+        date(2014, 3, 31),
+        date(2015, 1, 31),
+        date(2022, 3, 31),
+    }
+
+    assert expected_bearish.issubset(internal_dates)

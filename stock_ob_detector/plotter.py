@@ -46,9 +46,11 @@ class ChartPlotter:
         order_blocks: Iterable[OrderBlock],
         *,
         label: str,
+        bias: Bias,
+        color: str,
     ) -> None:
         for order_block in order_blocks:
-            if order_block.bias != Bias.BULLISH:
+            if order_block.bias != bias:
                 continue
             index = self._find_index(candles, order_block.timestamp)
             if index is None:
@@ -61,13 +63,15 @@ class ChartPlotter:
                 color=color,
                 alpha=0.2,
             )
+            y_position = order_block.high if bias == Bias.BULLISH else order_block.low
             self._axis.text(
                 index,
-                order_block.high,
+                y_position,
                 label,
                 color=color,
                 fontsize=9,
                 ha="left",
+                va="bottom" if bias == Bias.BULLISH else "top",
             )
 
     @staticmethod
