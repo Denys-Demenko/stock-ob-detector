@@ -1,0 +1,53 @@
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #f8fafc;
+  background-color: #020617;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #020617;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+header {
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+p {
+  margin: 0.25rem 0 0;
+  color: #cbd5f5;
+}
+
+.chart-wrapper {
+  flex: 1;
+  min-height: 500px;
+  position: relative;
+  border-radius: 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.5);
+  background-color: #0b0e1a;
+  overflow: hidden;
+}
+
+.chart-highlight {
+  position: absolute;
+  background: rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.8);
+  border-left: none;
+  pointer-events: none;
+  z-index: 5;
+}
